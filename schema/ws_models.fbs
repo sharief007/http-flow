@@ -1,0 +1,47 @@
+// FlatBuffer Schema for WebSocket Messages
+// Contains only WebSocket event messages for real-time communication
+
+namespace HttpInterceptor;
+
+// Flow data for WebSocket events
+table FlowData {
+    id: string (required);
+    method: string (required);
+    url: string (required);
+    status: uint16;
+    start_timestamp: double;
+    end_timestamp: double;
+    request_size: uint32;
+    response_size: uint32;
+    request_headers: [HeaderPair] (required);
+    response_headers: [HeaderPair] (required);
+    request_body: string (required);
+    response_body: string (required);
+    is_intercepted: bool = false;
+}
+
+// Key-value pair for headers
+table HeaderPair {
+    key: string (required);
+    value: string (required);
+}
+
+// Server status event (proxy server start/stop)
+table ServerEvent {
+    status: string (required);
+    port: uint16;
+}
+
+// Union type for all WebSocket message types
+union WebSocketMessageType {
+    ServerEvent,
+    FlowData
+}
+
+// Root WebSocket message container
+table WebSocketMessage {
+    type: string (required); // "server_event" or "flow_event"
+    data: WebSocketMessageType (required);
+}
+
+root_type WebSocketMessage;

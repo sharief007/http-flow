@@ -1,0 +1,95 @@
+// FlatBuffer Schema for Core Models
+// Contains data models for filters, rules, and synchronization messages
+
+namespace HttpInterceptor;
+
+// Enums
+enum Operator : byte {
+    CONTAINS = 0,
+    EQUALS = 1,
+    STARTS_WITH = 2,
+    ENDS_WITH = 3,
+    REGEX = 4
+}
+
+enum RuleAction : byte {
+    ADD_HEADER = 0,
+    MODIFY_HEADER = 1,
+    DELETE_HEADER = 2,
+    MODIFY_BODY = 3,
+    BLOCK_REQUEST = 4,
+    AUTO_RESPOND = 5
+}
+
+enum OperationType : byte {
+    FULL_SYNC = 0,
+    ADD = 1,
+    UPDATE = 2,
+    DELETE = 3
+}
+
+// Key-value pair for headers
+table HeaderPair {
+    key: string;
+    value: string;
+}
+
+// Flow data model
+table FlowData {
+    id: string;
+    method: string;
+    url: string;
+    status: uint16;
+    start_timestamp: double;
+    end_timestamp: double;
+    request_size: uint32;
+    response_size: uint32;
+    request_headers: [HeaderPair];
+    response_headers: [HeaderPair];
+    request_body: string;
+    response_body: string;
+    is_intercepted: bool = false;
+}
+
+// Filter model
+table FilterModel {
+    id: uint32;
+    filter_name: string;
+    field: string;
+    operator: Operator;
+    value: string;
+}
+
+// Rule model
+table RuleModel {
+    id: uint32;
+    rule_name: string;
+    filter_id: uint32;
+    action: RuleAction;
+    target_key: string;
+    target_value: string;
+    enabled: bool = true;
+}
+
+// Synchronization message for rules and filters updates
+table SyncMessage {
+    operation: OperationType;
+    rules_list: [RuleModel];
+    filters_data: [FilterModel];
+    timestamp: double;
+}
+
+// Union type for all core message types
+union CoreMessageType {
+    FilterModel,
+    RuleModel,
+    SyncMessage
+}
+
+// Root core message container
+table CoreMessage {
+    message: CoreMessageType;
+    timestamp: double;
+}
+
+root_type CoreMessage;

@@ -1,0 +1,17 @@
+{
+    "manifest_version": 3,
+    "name": "HTTP Interceptor",
+    "version": "1.0",
+    "description": "An extension to intercept and modify HTTP requests.",
+    "permissions": [
+        "nativeMessaging",
+        "storage",
+        "unlimitedStorage"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "index.html"
+    }
+}
