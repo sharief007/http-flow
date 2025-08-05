@@ -12,6 +12,248 @@ class WebSocketMessageType(object):
     FlowData = 2
 
 
+class HeaderPair(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def GetRootAs(cls, buf, offset=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = HeaderPair()
+        x.Init(buf, n + offset)
+        return x
+
+    @classmethod
+    def GetRootAsHeaderPair(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    # HeaderPair
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+    # HeaderPair
+    def Key(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # HeaderPair
+    def Value(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+def HeaderPairStart(builder):
+    builder.StartObject(2)
+
+def HeaderPairAddKey(builder, key):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(key), 0)
+
+def HeaderPairAddValue(builder, value):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(value), 0)
+
+def HeaderPairEnd(builder):
+    return builder.EndObject()
+
+
+
+class FlowData(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def GetRootAs(cls, buf, offset=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = FlowData()
+        x.Init(buf, n + offset)
+        return x
+
+    @classmethod
+    def GetRootAsFlowData(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    # FlowData
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+    # FlowData
+    def Id(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # FlowData
+    def Method(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # FlowData
+    def Url(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # FlowData
+    def Status(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint16Flags, o + self._tab.Pos)
+        return 0
+
+    # FlowData
+    def StartTimestamp(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
+        return 0.0
+
+    # FlowData
+    def EndTimestamp(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float64Flags, o + self._tab.Pos)
+        return 0.0
+
+    # FlowData
+    def RequestSize(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+        return 0
+
+    # FlowData
+    def ResponseSize(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+        return 0
+
+    # FlowData
+    def RequestHeaders(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            obj = HeaderPair()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # FlowData
+    def RequestHeadersLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # FlowData
+    def RequestHeadersIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        return o == 0
+
+    # FlowData
+    def ResponseHeaders(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            obj = HeaderPair()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # FlowData
+    def ResponseHeadersLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # FlowData
+    def ResponseHeadersIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        return o == 0
+
+    # FlowData
+    def RequestBody(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # FlowData
+    def ResponseBody(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+    # FlowData
+    def IsIntercepted(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return False
+
+def FlowDataStart(builder):
+    builder.StartObject(13)
+
+def FlowDataAddId(builder, id):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(id), 0)
+
+def FlowDataAddMethod(builder, method):
+    builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(method), 0)
+
+def FlowDataAddUrl(builder, url):
+    builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(url), 0)
+
+def FlowDataAddStatus(builder, status):
+    builder.PrependUint16Slot(3, status, 0)
+
+def FlowDataAddStartTimestamp(builder, startTimestamp):
+    builder.PrependFloat64Slot(4, startTimestamp, 0.0)
+
+def FlowDataAddEndTimestamp(builder, endTimestamp):
+    builder.PrependFloat64Slot(5, endTimestamp, 0.0)
+
+def FlowDataAddRequestSize(builder, requestSize):
+    builder.PrependUint32Slot(6, requestSize, 0)
+
+def FlowDataAddResponseSize(builder, responseSize):
+    builder.PrependUint32Slot(7, responseSize, 0)
+
+def FlowDataAddRequestHeaders(builder, requestHeaders):
+    builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(requestHeaders), 0)
+
+def FlowDataStartRequestHeadersVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def FlowDataAddResponseHeaders(builder, responseHeaders):
+    builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(responseHeaders), 0)
+
+def FlowDataStartResponseHeadersVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def FlowDataAddRequestBody(builder, requestBody):
+    builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(requestBody), 0)
+
+def FlowDataAddResponseBody(builder, responseBody):
+    builder.PrependUOffsetTRelativeSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(responseBody), 0)
+
+def FlowDataAddIsIntercepted(builder, isIntercepted):
+    builder.PrependBoolSlot(12, isIntercepted, 0)
+
+def FlowDataEnd(builder):
+    return builder.EndObject()
+
+
+
 class ServerEvent(object):
     __slots__ = ['_tab']
 

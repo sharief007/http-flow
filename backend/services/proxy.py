@@ -11,7 +11,8 @@ from backend.services.ws import ConnectionManager
 from backend.services.storage import CacheStore 
 from backend.models.flat_utils import (
     serialize_sync_message,
-    create_full_sync_message
+    create_full_sync_message,
+    deserialize_websocket_message
 )
 from backend.models.base_models import (
     FilterModel as PyFilterModel,

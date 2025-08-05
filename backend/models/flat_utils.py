@@ -13,16 +13,10 @@ from abc import ABC, abstractmethod
 # Import the generated FlatBuffer classes
 from backend.models.backend_generated import (
     # Classes
-    HeaderPair, FlowData, FilterModel, RuleModel, SyncMessage,
+    FilterModel, RuleModel, SyncMessage,
     # Enums
     Operator, RuleAction, OperationType,
     # Builder functions
-    HeaderPairStart, HeaderPairEnd, HeaderPairAddKey, HeaderPairAddValue,
-    FlowDataStart, FlowDataEnd, FlowDataAddId, FlowDataAddMethod, FlowDataAddUrl,
-    FlowDataAddStatus, FlowDataAddStartTimestamp, FlowDataAddEndTimestamp,
-    FlowDataAddRequestSize, FlowDataAddResponseSize, FlowDataAddRequestHeaders,
-    FlowDataAddResponseHeaders, FlowDataAddRequestBody, FlowDataAddResponseBody,
-    FlowDataAddIsIntercepted, FlowDataStartRequestHeadersVector, FlowDataStartResponseHeadersVector,
     FilterModelStart, FilterModelEnd, FilterModelAddId, FilterModelAddFilterName,
     FilterModelAddField, FilterModelAddOperator, FilterModelAddValue,
     RuleModelStart, RuleModelEnd, RuleModelAddId, RuleModelAddRuleName,
@@ -36,10 +30,16 @@ from backend.models.backend_generated import (
 # Import WebSocket event classes
 from backend.models.events_generated import (
     # Classes
-    ServerEvent, WebSocketMessage,
+    HeaderPair, FlowData, ServerEvent, WebSocketMessage,
     # Enums
     WebSocketMessageType,
     # Builder functions
+    HeaderPairStart, HeaderPairEnd, HeaderPairAddKey, HeaderPairAddValue,
+    FlowDataStart, FlowDataEnd, FlowDataAddId, FlowDataAddMethod, FlowDataAddUrl,
+    FlowDataAddStatus, FlowDataAddStartTimestamp, FlowDataAddEndTimestamp,
+    FlowDataAddRequestSize, FlowDataAddResponseSize, FlowDataAddRequestHeaders,
+    FlowDataAddResponseHeaders, FlowDataAddRequestBody, FlowDataAddResponseBody,
+    FlowDataAddIsIntercepted, FlowDataStartRequestHeadersVector, FlowDataStartResponseHeadersVector,
     ServerEventStart, ServerEventEnd, ServerEventAddStatus, ServerEventAddPort,
     WebSocketMessageStart, WebSocketMessageEnd, WebSocketMessageAddType,
     WebSocketMessageAddDataType, WebSocketMessageAddData

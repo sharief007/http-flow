@@ -3,7 +3,7 @@ from pathlib import Path
 from mitmproxy import http
 from typing import Any
 import re
-from backend.models.flat_utils import serialize_flow_data
+from backend.models.flat_utils import create_flow_data_message
 from backend.models.base_models import (
     FlowData,
     RuleAction,
@@ -205,8 +205,9 @@ class HTTPInterceptorAddon:
     def _send_message(self, message: FlowData) -> None:
         """Send structured message to queue"""
         try:
-            flat_message = serialize_flow_data(message)
-            self.flow_queue.put(flat_message)
+            # Create complete WebSocket message with FlowData
+            binary_message = create_flow_data_message(message)
+            self.flow_queue.put(binary_message)
         except Exception as e:
             logger.error(f"Error sending message: {e}")
 

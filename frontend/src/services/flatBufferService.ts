@@ -1,6 +1,6 @@
 import { ByteBuffer } from 'flatbuffers';
 import  { HttpFlow } from '../store/types';
-import { HttpInterceptor } from '../models/ws_models_generated';
+import { HttpInterceptor } from '../models/events';
 
 class FlatBufferService {
     /**
@@ -9,6 +9,7 @@ class FlatBufferService {
      */
     parseFlowMessage(binaryData: Uint8Array): HttpFlow | null {
         try {
+            console.log("I am here")
             const buf = new ByteBuffer(binaryData);
             const message = HttpInterceptor.WebSocketMessage.getRootAsWebSocketMessage(buf);;
             const messageType = message.dataType();
@@ -38,7 +39,7 @@ class FlatBufferService {
                 const name = header?.key();
                 const value = header?.value();
                 if (name && value) {
-                    requestHeaders.push({ name, value });
+                    responseHeaders.push({ name, value });
                 }
             }
 
