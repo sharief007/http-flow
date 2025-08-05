@@ -25,13 +25,10 @@ def generate_python_stubs():
     project_root = Path(__file__).parent.parent
     output_dir = project_root / "backend" / "models"
 
-    command = f"flatc --python --gen-onefile --gen-all -o {output_dir} {schema_file}"
-    schema_file = project_root / "schema" / "backend.fbs"
-    _generate(command)
-    
-    schema_file = project_root / "schema" / "events.fbs"
-    command = f"flatc --python --gen-onefile -o {output_dir} {schema_file}"
-    _generate(command)
+    for file_name in ["backend.fbs", "events.fbs"]:
+        schema_file = project_root / "schema" / file_name
+        command = f"flatc --python --gen-onefile --gen-all -o {output_dir} {schema_file}"
+        _generate(command)
     
 
 def generate_ts_stubs():
