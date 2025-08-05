@@ -108,7 +108,7 @@ const RequestsTable: React.FC = memo(() => {
                         <th className="w-20 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Status
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider" style={{maxWidth: 'calc(100vw - 576px - 2rem)', minWidth: '200px'}}>
                             URL
                         </th>
                         <th className="w-20 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
@@ -143,7 +143,7 @@ const RequestsTable: React.FC = memo(() => {
                                     {request.status || 'pending'}
                                 </span>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-4 py-3" style={{maxWidth: 'calc(100vw - 576px - 2rem)', minWidth: '200px'}}>
                                 <div className="truncate text-sm text-gray-900 dark:text-white" title={request.url}>
                                     {request.url}
                                 </div>
