@@ -1,4 +1,5 @@
 # Database manager
+import logging
 import sqlite3
 from typing import List, Dict, Optional
 import threading
@@ -6,6 +7,7 @@ import threading
 from backend.models.base_models import FilterModel, RuleModel, Operator, RuleAction, OperationType
 from backend.models.flat_utils import deserialize_sync_message
 
+logger = logging.getLogger(__name__)
 
 class DatabaseManager:
     _instance = None
@@ -356,7 +358,7 @@ class CacheStore:
 
     _instance = None
     _lock = threading.Lock()
-
+    
     def __new__(cls):
         if cls._instance is None:
             with cls._lock:
@@ -377,7 +379,7 @@ class CacheStore:
         self._filters: Dict[int, FilterModel] = {}
 
         self._initialized = True
-        print("CacheStore initialized - waiting for sync messages from queue")
+        logger.info("CacheStore initialized - waiting for sync messages from queue")
 
     def update_rules(self, rules: List[RuleModel], clear_all: bool = False) -> None:
         """Update rules cache - optimized O(n) operation"""
@@ -425,7 +427,7 @@ class CacheStore:
             for rule_id in rule_ids:
                 if rule_id in self._rules:
                     del self._rules[rule_id]
-                    print(f"Deleted rule {rule_id} from cache")
+                    logger.info(f"Deleted rule {rule_id} from cache")
 
     def delete_filters(self, filter_ids: List[int]) -> None:
         """Delete filters by ID list - O(n) operation"""
@@ -433,21 +435,21 @@ class CacheStore:
             for filter_id in filter_ids:
                 if filter_id in self._filters:
                     del self._filters[filter_id]
-                    print(f"Deleted filter {filter_id} from cache")
+                    logger.info(f"Deleted filter {filter_id} from cache")
 
     def add_single_rule(self, rule: RuleModel) -> None:
         """Add a single rule to cache"""
         if rule.id is not None:
             with self._rules_lock:
                 self._rules[rule.id] = rule
-                print(f"Added rule {rule.id} to cache")
+                logger.info(f"Added rule {rule.id} to cache")
 
     def add_single_filter(self, filter_obj: FilterModel) -> None:
         """Add a single filter to cache"""
         if filter_obj.id is not None:
             with self._filters_lock:
                 self._filters[filter_obj.id] = filter_obj
-                print(f"Added filter {filter_obj.id} to cache")
+                logger.info(f"Added filter {filter_obj.id} to cache")
 
     def get_cache_stats(self) -> Dict[str, int]:
         """Get cache statistics"""
@@ -470,15 +472,11 @@ class CacheStore:
             self._rules.clear()
         with self._filters_lock:
             self._filters.clear()
-        print("Cache cleared")
+        logger.info("Cache cleared")
 
     def handle_sync_msg(self, raw_msg: bytes) -> None:
         """Handle sync message and update cache"""
-        try:
-            print(f"Received raw message of size: {len(raw_msg)} bytes")
-            print(f"First 50 bytes: {raw_msg[:50]}")
-            print(f"Last 50 bytes: {raw_msg[-50:]}")
-            
+        try:            
             # Deserialize the sync message using the new utility
             sync_message = deserialize_sync_message(raw_msg)
             
@@ -486,30 +484,30 @@ class CacheStore:
             rules_list = sync_message.rules_list
             filters_list = sync_message.filters_data
 
-            print(f"Processing sync message: operation={operation}, rules={len(rules_list)}, filters={len(filters_list)}")
+            logger.info(f"Processing sync message: operation={operation}, rules={len(rules_list)}, filters={len(filters_list)}")
 
             # Handle different operations
             if operation == OperationType.FULL_SYNC:
-                print("Performing FULL_SYNC")
+                logger.info("Performing FULL_SYNC")
                 self.update_filters(filters_list, clear_all=True)
                 self.update_rules(rules_list, clear_all=True)
                 
             elif operation == OperationType.ADD:
-                print("Performing ADD operation")
+                logger.info("Performing ADD operation")
                 if filters_list:
                     self.update_filters(filters_list, clear_all=False)
                 if rules_list:
                     self.update_rules(rules_list, clear_all=False)
                     
             elif operation == OperationType.UPDATE:
-                print("Performing UPDATE operation")
+                logger.info("Performing UPDATE operation")
                 if filters_list:
                     self.update_filters(filters_list, clear_all=False)
                 if rules_list:
                     self.update_rules(rules_list, clear_all=False)
                     
             elif operation == OperationType.DELETE:
-                print("Performing DELETE operation")
+                logger.info("Performing DELETE operation")
                 if filters_list:
                     filter_ids = [f.id for f in filters_list if f.id is not None]
                     self.delete_filters(filter_ids)
@@ -519,9 +517,9 @@ class CacheStore:
 
             # Print final cache state
             stats = self.get_cache_stats()
-            print(f"Cache updated: {stats['total_rules']} total rules ({stats['active_rules']} active), {stats['total_filters']} filters")
+            logger.info(f"Cache updated: {stats['total_rules']} total rules ({stats['active_rules']} active), {stats['total_filters']} filters")
             
         except Exception as e:
-            print(f"Error handling sync message: {e}")
+            logger.error(f"Error handling sync message: {e}")
             import traceback
             traceback.print_exc()

@@ -33,6 +33,18 @@ from backend.models.backend_generated import (
     SyncMessageStartFiltersDataVector
 )
 
+# Import WebSocket event classes
+from backend.models.events_generated import (
+    # Classes
+    ServerEvent, WebSocketMessage,
+    # Enums
+    WebSocketMessageType,
+    # Builder functions
+    ServerEventStart, ServerEventEnd, ServerEventAddStatus, ServerEventAddPort,
+    WebSocketMessageStart, WebSocketMessageEnd, WebSocketMessageAddType,
+    WebSocketMessageAddDataType, WebSocketMessageAddData
+)
+
 # Import your Python models
 from backend.models.base_models import (
     FlowData as PyFlowData, FilterModel as PyFilterModel, 
@@ -77,8 +89,8 @@ FB_TO_PYTHON_OPERATION = {v: k for k, v in PYTHON_TO_FB_OPERATION.items()}
 class FlatBufferSerializer:
     """Serializes Python models to FlatBuffer bytes"""
     
-    def __init__(self, initial_size: int = 1024):
-        self.builder = flatbuffers.Builder(initial_size)
+    def __init__(self):
+        self.builder = flatbuffers.Builder()
     
     def _create_header_pair(self, key: str, value: str) -> int:
         """Create a HeaderPair FlatBuffer object"""
@@ -109,7 +121,7 @@ class FlatBufferSerializer:
     
     def serialize_flow_data(self, flow_data: PyFlowData) -> bytes:
         """Serialize FlowData to FlatBuffer bytes"""
-        self.builder = flatbuffers.Builder(2048)
+        self.builder = flatbuffers.Builder()
         
         # Create strings
         id_fb = self.builder.CreateString(flow_data.id)
@@ -148,7 +160,7 @@ class FlatBufferSerializer:
     
     def serialize_filter_model(self, filter_model: PyFilterModel) -> bytes:
         """Serialize FilterModel to FlatBuffer bytes"""
-        self.builder = flatbuffers.Builder(512)
+        self.builder = flatbuffers.Builder()
         
         # Create strings
         filter_name_fb = self.builder.CreateString(filter_model.filter_name)
@@ -172,7 +184,7 @@ class FlatBufferSerializer:
     
     def serialize_rule_model(self, rule_model: PyRuleModel) -> bytes:
         """Serialize RuleModel to FlatBuffer bytes"""
-        self.builder = flatbuffers.Builder(512)
+        self.builder = flatbuffers.Builder()
         
         # Create strings
         rule_name_fb = self.builder.CreateString(rule_model.rule_name)
@@ -266,7 +278,7 @@ class FlatBufferSerializer:
     
     def serialize_sync_message(self, sync_message: PySyncMessage) -> bytes:
         """Serialize SyncMessage to FlatBuffer bytes"""
-        self.builder = flatbuffers.Builder(4096)
+        self.builder = flatbuffers.Builder()
         
         # Convert enum
         operation_fb = PYTHON_TO_FB_OPERATION.get(sync_message.operation, OperationType.FULL_SYNC)
@@ -285,6 +297,110 @@ class FlatBufferSerializer:
         
         sync_offset = SyncMessageEnd(self.builder)
         self.builder.Finish(sync_offset)
+        return bytes(self.builder.Output())
+    
+    def serialize_server_event(self, status: str, port: int) -> bytes:
+        """Serialize ServerEvent to FlatBuffer bytes"""
+        self.builder = flatbuffers.Builder()
+        
+        # Create string
+        status_fb = self.builder.CreateString(status)
+        
+        ServerEventStart(self.builder)
+        ServerEventAddStatus(self.builder, status_fb)
+        ServerEventAddPort(self.builder, port)
+        
+        server_event_offset = ServerEventEnd(self.builder)
+        self.builder.Finish(server_event_offset)
+        return bytes(self.builder.Output())
+    
+    def serialize_websocket_message(self, message_type: str, data_type: int, data_offset: int) -> bytes:
+        """Serialize WebSocketMessage to FlatBuffer bytes"""
+        self.builder = flatbuffers.Builder()
+        
+        # Create string
+        type_fb = self.builder.CreateString(message_type)
+        
+        WebSocketMessageStart(self.builder)
+        WebSocketMessageAddType(self.builder, type_fb)
+        WebSocketMessageAddDataType(self.builder, data_type)
+        WebSocketMessageAddData(self.builder, data_offset)
+        
+        ws_message_offset = WebSocketMessageEnd(self.builder)
+        self.builder.Finish(ws_message_offset)
+        return bytes(self.builder.Output())
+    
+    def create_server_event_message(self, status: str, port: int) -> bytes:
+        """Create a complete WebSocket message containing ServerEvent"""
+        self.builder = flatbuffers.Builder()
+        
+        # Create ServerEvent first
+        status_fb = self.builder.CreateString(status)
+        
+        ServerEventStart(self.builder)
+        ServerEventAddStatus(self.builder, status_fb)
+        ServerEventAddPort(self.builder, port)
+        server_event_offset = ServerEventEnd(self.builder)
+        
+        # Create WebSocketMessage
+        type_fb = self.builder.CreateString("server_event")
+        
+        WebSocketMessageStart(self.builder)
+        WebSocketMessageAddType(self.builder, type_fb)
+        WebSocketMessageAddDataType(self.builder, WebSocketMessageType.ServerEvent)
+        WebSocketMessageAddData(self.builder, server_event_offset)
+        
+        ws_message_offset = WebSocketMessageEnd(self.builder)
+        self.builder.Finish(ws_message_offset)
+        return bytes(self.builder.Output())
+    
+    def create_flow_data_message(self, flow_data: PyFlowData) -> bytes:
+        """Create a complete WebSocket message containing FlowData"""
+        self.builder = flatbuffers.Builder()
+        
+        # Create FlowData first
+        id_fb = self.builder.CreateString(flow_data.id)
+        method_fb = self.builder.CreateString(flow_data.method)
+        url_fb = self.builder.CreateString(flow_data.url)
+        request_body_fb = self.builder.CreateString(flow_data.request_body or "")
+        response_body_fb = self.builder.CreateString(flow_data.response_body or "")
+        
+        # Create header vectors
+        request_headers_fb = self._create_headers_vector(flow_data.request_headers)
+        response_headers_fb = self._create_headers_vector(flow_data.response_headers)
+        
+        # Create FlowData
+        FlowDataStart(self.builder)
+        FlowDataAddId(self.builder, id_fb)
+        FlowDataAddMethod(self.builder, method_fb)
+        FlowDataAddUrl(self.builder, url_fb)
+        FlowDataAddStatus(self.builder, flow_data.status)
+        FlowDataAddStartTimestamp(self.builder, flow_data.start_timestamp)
+        FlowDataAddEndTimestamp(self.builder, flow_data.end_timestamp)
+        FlowDataAddRequestSize(self.builder, flow_data.request_size)
+        FlowDataAddResponseSize(self.builder, flow_data.response_size)
+        
+        if request_headers_fb:
+            FlowDataAddRequestHeaders(self.builder, request_headers_fb)
+        if response_headers_fb:
+            FlowDataAddResponseHeaders(self.builder, response_headers_fb)
+        
+        FlowDataAddRequestBody(self.builder, request_body_fb)
+        FlowDataAddResponseBody(self.builder, response_body_fb)
+        FlowDataAddIsIntercepted(self.builder, flow_data.is_intercepted)
+        
+        flow_data_offset = FlowDataEnd(self.builder)
+        
+        # Create WebSocketMessage
+        type_fb = self.builder.CreateString("flow_event")
+        
+        WebSocketMessageStart(self.builder)
+        WebSocketMessageAddType(self.builder, type_fb)
+        WebSocketMessageAddDataType(self.builder, WebSocketMessageType.FlowData)
+        WebSocketMessageAddData(self.builder, flow_data_offset)
+        
+        ws_message_offset = WebSocketMessageEnd(self.builder)
+        self.builder.Finish(ws_message_offset)
         return bytes(self.builder.Output())
 
 
@@ -432,6 +548,81 @@ class FlatBufferDeserializer:
             filters_data=filters_data,
             timestamp=fb_sync.Timestamp()
         )
+    
+    @staticmethod
+    def deserialize_server_event(buffer: bytes) -> dict:
+        """Deserialize FlatBuffer bytes to ServerEvent dict"""
+        fb_server_event = ServerEvent.GetRootAs(buffer)
+        
+        return {
+            "status": fb_server_event.Status().decode('utf-8') if fb_server_event.Status() else "",
+            "port": fb_server_event.Port()
+        }
+    
+    @staticmethod
+    def deserialize_websocket_message(buffer: bytes) -> dict:
+        """Deserialize FlatBuffer bytes to WebSocketMessage dict"""
+        fb_ws_message = WebSocketMessage.GetRootAs(buffer)
+        
+        message_type = fb_ws_message.Type().decode('utf-8') if fb_ws_message.Type() else ""
+        data_type = fb_ws_message.DataType()
+        data_table = fb_ws_message.Data()
+        
+        result = {
+            "type": message_type,
+            "data_type": data_type,
+            "data": None
+        }
+        
+        if data_table and data_type == WebSocketMessageType.ServerEvent:
+            # Extract ServerEvent from the union
+            server_event = ServerEvent()
+            server_event.Init(data_table.Bytes, data_table.Pos)
+            result["data"] = {
+                "status": server_event.Status().decode('utf-8') if server_event.Status() else "",
+                "port": server_event.Port()
+            }
+        elif data_table and data_type == WebSocketMessageType.FlowData:
+            # Extract FlowData from the union
+            flow_data = FlowData()
+            flow_data.Init(data_table.Bytes, data_table.Pos)
+            
+            # Extract headers
+            request_headers = {}
+            for i in range(flow_data.RequestHeadersLength()):
+                header_pair = flow_data.RequestHeaders(i)
+                if header_pair:
+                    key = header_pair.Key()
+                    value = header_pair.Value()
+                    if key and value:
+                        request_headers[key.decode('utf-8')] = value.decode('utf-8')
+            
+            response_headers = {}
+            for i in range(flow_data.ResponseHeadersLength()):
+                header_pair = flow_data.ResponseHeaders(i)
+                if header_pair:
+                    key = header_pair.Key()
+                    value = header_pair.Value()
+                    if key and value:
+                        response_headers[key.decode('utf-8')] = value.decode('utf-8')
+            
+            result["data"] = {
+                "id": flow_data.Id().decode('utf-8') if flow_data.Id() else "",
+                "method": flow_data.Method().decode('utf-8') if flow_data.Method() else "",
+                "url": flow_data.Url().decode('utf-8') if flow_data.Url() else "",
+                "status": flow_data.Status(),
+                "start_timestamp": flow_data.StartTimestamp(),
+                "end_timestamp": flow_data.EndTimestamp(),
+                "request_size": flow_data.RequestSize(),
+                "response_size": flow_data.ResponseSize(),
+                "request_headers": request_headers,
+                "response_headers": response_headers,
+                "request_body": flow_data.RequestBody().decode('utf-8') if flow_data.RequestBody() else "",
+                "response_body": flow_data.ResponseBody().decode('utf-8') if flow_data.ResponseBody() else "",
+                "is_intercepted": flow_data.IsIntercepted()
+            }
+        
+        return result
 
 
 # ============= CONVENIENCE FUNCTIONS =============
@@ -479,6 +670,36 @@ def deserialize_sync_message(buffer: bytes) -> PySyncMessage:
     """Deserialize bytes to SyncMessage"""
     return FlatBufferDeserializer.deserialize_sync_message(buffer)
 
+# WebSocket message utilities
+def serialize_server_event(status: str, port: int) -> bytes:
+    """Serialize ServerEvent to bytes"""
+    return FlatBufferSerializer().serialize_server_event(status, port)
+
+def create_server_event_message(status: str, port: int) -> bytes:
+    """Create a complete WebSocket message containing ServerEvent"""
+    return FlatBufferSerializer().create_server_event_message(status, port)
+
+def create_flow_data_message(flow_data: PyFlowData) -> bytes:
+    """Create a complete WebSocket message containing FlowData"""
+    return FlatBufferSerializer().create_flow_data_message(flow_data)
+
+def deserialize_server_event(buffer: bytes) -> dict:
+    """Deserialize bytes to ServerEvent dict"""
+    return FlatBufferDeserializer.deserialize_server_event(buffer)
+
+def deserialize_websocket_message(buffer: bytes) -> dict:
+    """Deserialize bytes to WebSocketMessage dict"""
+    return FlatBufferDeserializer.deserialize_websocket_message(buffer)
+
+# Server event convenience functions
+def create_server_started_message(port: int) -> bytes:
+    """Create a server started WebSocket message"""
+    return create_server_event_message("started", port)
+
+def create_server_stopped_message(port: int) -> bytes:
+    """Create a server stopped WebSocket message"""
+    return create_server_event_message("stopped", port)
+
 # Round-trip utilities
 def round_trip_flow_data(flow_data: PyFlowData) -> PyFlowData:
     """Serialize and deserialize FlowData (useful for testing)"""
@@ -489,4 +710,20 @@ def round_trip_sync_message(sync_message: PySyncMessage) -> PySyncMessage:
     """Serialize and deserialize SyncMessage (useful for testing)"""
     buffer = serialize_sync_message(sync_message)
     return deserialize_sync_message(buffer)
+
+def round_trip_server_event(status: str, port: int) -> dict:
+    """Serialize and deserialize ServerEvent (useful for testing)"""
+    buffer = serialize_server_event(status, port)
+    return deserialize_server_event(buffer)
+
+def round_trip_websocket_message(message_type: str, flow_data: PyFlowData = None, status: str = None, port: int = None) -> dict:
+    """Serialize and deserialize WebSocketMessage (useful for testing)"""
+    if message_type == "flow_event" and flow_data:
+        buffer = create_flow_data_message(flow_data)
+    elif message_type == "server_event" and status and port:
+        buffer = create_server_event_message(status, port)
+    else:
+        raise ValueError("Invalid message type or missing parameters")
+    
+    return deserialize_websocket_message(buffer)
 

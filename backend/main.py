@@ -165,15 +165,8 @@ async def start_interception():
             all_filters = db.get_filters()
             all_rules = db.get_rules()
             
-            # Debug logging
-            logger.info(f"Retrieved {len(all_rules)} rules and {len(all_filters)} filters from database")
-            for i, rule in enumerate(all_rules[:3]):  # Log first 3 rules
-                logger.info(f"Rule {i}: {rule}")
-            for i, filter_item in enumerate(all_filters[:3]):  # Log first 3 filters
-                logger.info(f"Filter {i}: {filter_item}")
-            
             proxy_manager.full_sync(all_filters, all_rules)
-            logger.info(f"Sent full sync to proxy: {len(all_rules)} rules, {len(all_filters)} filters")
+            logger.info(f"Initial sync applied: {len(all_rules)} rules, {len(all_filters)} filters")
             
             start_event = create_server_started_message(proxy_manager.proxy_port)
             await connection_manager.broadcast(start_event)

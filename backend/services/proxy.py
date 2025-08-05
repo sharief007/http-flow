@@ -8,10 +8,9 @@ from mitmproxy.tools.dump import DumpMaster
 import logging
 from backend.services.addon import HTTPInterceptorAddon
 from backend.services.ws import ConnectionManager
-from backend.services.storage import DatabaseManager, CacheStore 
+from backend.services.storage import CacheStore 
 from backend.models.flat_utils import (
     serialize_sync_message,
-    deserialize_sync_message,
     create_full_sync_message
 )
 from backend.models.base_models import (
@@ -35,14 +34,13 @@ def run_mitmproxy_process(proxy_port: int, flow_queue: SimpleQueue, rule_queue: 
                 if not rule_queue.empty():
                     raw_msg = rule_queue.get()
                     if raw_msg and isinstance(raw_msg, bytes) and len(raw_msg) > 0:
-                        logger.info(f"Processing sync message of {len(raw_msg)} bytes")
+                        # logger.info(f"Processing sync message of {len(raw_msg)} bytes")
                         cache_storage.handle_sync_msg(raw_msg)
                     else:
                         logger.warning("Received invalid sync message")
                 else:
                     # No messages available, yield control back to event loop
                     await asyncio.sleep(0.1)
-                    
             except Exception as e:
                 logger.error(f"Error processing rule updates: {e}")
                 import traceback
@@ -52,9 +50,7 @@ def run_mitmproxy_process(proxy_port: int, flow_queue: SimpleQueue, rule_queue: 
         logger.info("Rule update handler stopped")
 
     async def _run_async():
-        try:
-            logger.info(f"Initializing cache storage")
-            
+        try:            
             # Start the rule update handler as a background task
             rule_handler_task = asyncio.create_task(
                 _handle_rule_updates()
@@ -307,13 +303,7 @@ class ProxyManager:
             return False
 
         logger.info(f"Creating full sync with {len(rules)} rules and {len(filters)} filters")
-        
-        # Use the convenience function for full sync
-        flat_sync_msg = create_full_sync_message(rules, filters)
-        
-        logger.info(f"Created FlatBuffer message of size: {len(flat_sync_msg)} bytes")
-        logger.info(f"First 50 bytes: {flat_sync_msg[:50]}")
-        
+        flat_sync_msg = create_full_sync_message(rules, filters)        
         self.rule_queue.put(flat_sync_msg)
         logger.info("Full sync message sent to proxy")
         return True

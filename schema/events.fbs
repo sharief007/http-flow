@@ -1,7 +1,7 @@
 // WebSocket models for real-time communication
 // Contains WebSocket-specific messages and events
 
-include "common_models.fbs";
+include "common.fbs";
 
 namespace HttpInterceptor;
 
