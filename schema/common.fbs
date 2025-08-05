@@ -1,0 +1,27 @@
+// Common models shared across different components
+// Contains basic data structures used by both server and WebSocket functionality
+
+namespace HttpInterceptor;
+
+// Key-value pair for headers
+table HeaderPair {
+    key: string (required);
+    value: string (required);
+}
+
+// Flow data model - represents HTTP request/response flow
+table FlowData {
+    id: string (required);
+    method: string (required);
+    url: string (required);
+    status: uint16;
+    start_timestamp: double;
+    end_timestamp: double;
+    request_size: uint32;
+    response_size: uint32;
+    request_headers: [HeaderPair] (required);
+    response_headers: [HeaderPair] (required);
+    request_body: string (required);
+    response_body: string (required);
+    is_intercepted: bool = false;
+}
