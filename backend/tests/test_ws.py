@@ -3,7 +3,7 @@ import json
 import asyncio
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from backend.services.ws import ConnectionManager
-from backend.HttpInterceptor import FlowData, FilterModel, RuleModel, Operator, RuleAction
+from backend.models.base_models import FlowData, FilterModel, RuleModel, Operator, RuleAction
 
 
 @pytest.fixture

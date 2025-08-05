@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import Mock, patch
 from mitmproxy import http
 from pydantic import ValidationError
-from backend.utils.base_models import (
+from backend.models.base_models import (
     FlowData, FilterModel, RuleModel, 
     Operator, RuleAction, OperationType, SyncMessage
 )

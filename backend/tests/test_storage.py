@@ -6,10 +6,9 @@ from unittest.mock import Mock
 import threading
 
 from backend.services.storage import DatabaseManager, CacheStore
-from backend.HttpInterceptor.FilterModel import FilterModel
-from backend.HttpInterceptor.RuleModel import RuleModel
-from backend.HttpInterceptor.SyncMessage import SyncMessage
-from backend.HttpInterceptor.OperationType import OperationType
+from backend.models.base_models import FilterModel, RuleModel, OperationType
+from backend.models.flat_utils import serialize_sync_message
+from backend.models.base_models import SyncMessage
 
 
 @pytest.fixture

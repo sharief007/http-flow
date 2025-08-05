@@ -13,9 +13,9 @@ import logging
 from backend.services.storage import DatabaseManager
 from backend.services.ws import ConnectionManager
 from backend.services.proxy import ProxyManager
-from backend.utils.base_models import FilterModel, OperationType, RuleModel
+from backend.models.base_models import FilterModel, OperationType, RuleModel
 
-from backend.utils.flat_utils import create_server_started_message, create_server_stopped_message
+from backend.models.flat_utils import create_server_started_message, create_server_stopped_message
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

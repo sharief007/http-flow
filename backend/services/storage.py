@@ -3,9 +3,8 @@ import sqlite3
 from typing import List, Dict, Optional
 import threading
 
-from backend.utils.base_models import FilterModel, RuleModel, Operator, RuleAction, OperationType
-from backend.HttpInterceptor.SyncMessage import SyncMessage
-from backend.HttpInterceptor.CoreMessage import CoreMessage
+from backend.models.base_models import FilterModel, RuleModel, Operator, RuleAction, OperationType
+from backend.models.flat_utils import deserialize_sync_message
 
 
 class DatabaseManager:
@@ -480,64 +479,14 @@ class CacheStore:
             print(f"First 50 bytes: {raw_msg[:50]}")
             print(f"Last 50 bytes: {raw_msg[-50:]}")
             
-            # First parse as CoreMessage, then extract the SyncMessage
-            core_msg = CoreMessage.GetRootAsCoreMessage(raw_msg, 0)
-            sync_msg_table = core_msg.Message()
-            if sync_msg_table is None:
-                print("Error: No sync message found in core message")
-                return
-                
-            # Now we have the SyncMessage table
-            sync_msg = SyncMessage()
-            sync_msg.Init(sync_msg_table.Bytes, sync_msg_table.Pos)
+            # Deserialize the sync message using the new utility
+            sync_message = deserialize_sync_message(raw_msg)
             
-            operation = sync_msg.Operation()
-            rules_size = sync_msg.RulesListLength()
-            filters_size = sync_msg.FiltersDataLength()
+            operation = sync_message.operation
+            rules_list = sync_message.rules_list
+            filters_list = sync_message.filters_data
 
-            print(f"Processing sync message: operation={operation}, rules={rules_size}, filters={filters_size}")
-
-            # Parse rules from sync message
-            rules_list: List[RuleModel] = []
-            for i in range(rules_size):
-                try:
-                    rule = sync_msg.RulesList(i)
-                    if rule is None:
-                        continue
-                        
-                    rule_model = RuleModel(
-                        id=rule.Id(),
-                        rule_name=rule.RuleName().decode('utf-8') if rule.RuleName() else "",
-                        filter_id=rule.FilterId(),
-                        action=RuleAction.from_int(rule.Action()),
-                        target_key=rule.TargetKey().decode('utf-8') if rule.TargetKey() else "",
-                        target_value=rule.TargetValue().decode('utf-8') if rule.TargetValue() else "",
-                        enabled=rule.Enabled()
-                    )
-                    rules_list.append(rule_model)
-                except Exception as e:
-                    print(f"Error parsing rule {i}: {e}")
-                    continue
-
-            # Parse filters from sync message
-            filters_list: List[FilterModel] = []
-            for i in range(filters_size):
-                try:
-                    filter_data = sync_msg.FiltersData(i)
-                    if filter_data is None:
-                        continue
-                        
-                    filter_model = FilterModel(
-                        id=filter_data.Id(),
-                        filter_name=filter_data.FilterName().decode('utf-8') if filter_data.FilterName() else "",
-                        field=filter_data.Field().decode('utf-8') if filter_data.Field() else "",
-                        operator=Operator.from_int(filter_data.Operator()),
-                        value=filter_data.Value().decode('utf-8') if filter_data.Value() else ""
-                    )
-                    filters_list.append(filter_model)
-                except Exception as e:
-                    print(f"Error parsing filter {i}: {e}")
-                    continue
+            print(f"Processing sync message: operation={operation}, rules={len(rules_list)}, filters={len(filters_list)}")
 
             # Handle different operations
             if operation == OperationType.FULL_SYNC:

@@ -3,8 +3,8 @@ from pathlib import Path
 from mitmproxy import http
 from typing import Any
 import re
-from backend.utils.flat_utils import MessageFactory
-from backend.utils.base_models import (
+from backend.models.flat_utils import serialize_flow_data
+from backend.models.base_models import (
     FlowData,
     RuleAction,
     RuleModel
@@ -205,7 +205,7 @@ class HTTPInterceptorAddon:
     def _send_message(self, message: FlowData) -> None:
         """Send structured message to queue"""
         try:
-            flat_message = MessageFactory.create_flow_data_message(message)
+            flat_message = serialize_flow_data(message)
             self.flow_queue.put(flat_message)
         except Exception as e:
             logger.error(f"Error sending message: {e}")

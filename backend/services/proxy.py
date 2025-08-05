@@ -9,13 +9,16 @@ import logging
 from backend.services.addon import HTTPInterceptorAddon
 from backend.services.ws import ConnectionManager
 from backend.services.storage import DatabaseManager, CacheStore 
-from backend.utils.flat_utils import (
-    MessageFactory
+from backend.models.flat_utils import (
+    serialize_sync_message,
+    deserialize_sync_message,
+    create_full_sync_message
 )
-from backend.utils.base_models import (
+from backend.models.base_models import (
     FilterModel as PyFilterModel,
     RuleModel as PyRuleModel,
-    SyncMessage as PySyncMessage, OperationType, 
+    SyncMessage as PySyncMessage, 
+    OperationType, 
 )
 
 logger = logging.getLogger(__name__)
@@ -282,7 +285,7 @@ class ProxyManager:
             return False
 
         sync_message = PySyncMessage(operation=op_type, rules_list=[], filters_data=[filter])
-        flat_sync_msg = MessageFactory.create_sync_message(sync_message)
+        flat_sync_msg = serialize_sync_message(sync_message)
         self.rule_queue.put(flat_sync_msg)
         logger.info(f"Filter {filter.filter_name} synced to proxy")
         return True
@@ -293,7 +296,7 @@ class ProxyManager:
             return False
 
         sync_message = PySyncMessage(operation=op_type, rules_list=[rule], filters_data=[])
-        flat_sync_msg = MessageFactory.create_sync_message(sync_message)
+        flat_sync_msg = serialize_sync_message(sync_message)
         self.rule_queue.put(flat_sync_msg)
         logger.info(f"Rules {rule.rule_name} synced to proxy")
         return True
@@ -305,12 +308,8 @@ class ProxyManager:
 
         logger.info(f"Creating full sync with {len(rules)} rules and {len(filters)} filters")
         
-        sync_message = PySyncMessage(
-            operation=OperationType.FULL_SYNC,
-            rules_list=rules,
-            filters_data=filters
-        )
-        flat_sync_msg = MessageFactory.create_sync_message(sync_message)
+        # Use the convenience function for full sync
+        flat_sync_msg = create_full_sync_message(rules, filters)
         
         logger.info(f"Created FlatBuffer message of size: {len(flat_sync_msg)} bytes")
         logger.info(f"First 50 bytes: {flat_sync_msg[:50]}")

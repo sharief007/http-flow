@@ -3,9 +3,7 @@ import socket
 from unittest.mock import Mock, patch, MagicMock
 from multiprocessing import SimpleQueue, Process
 from backend.services.proxy import ProxyManager, run_mitmproxy_process
-from backend.HttpInterceptor.FilterModel import FilterModel as PyFilterModel
-from backend.HttpInterceptor.RuleModel import RuleModel as PyRuleModel
-from backend.HttpInterceptor.OperationType import OperationType
+from backend.models.base_models import FilterModel as PyFilterModel, RuleModel as PyRuleModel, OperationType
 from backend.services.ws import ConnectionManager
 
 

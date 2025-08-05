@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from backend.utils.flat_utils import (
+from backend.models.flat_utils import (
     MessageFactory, 
     FlowDataBuilder, 
     FilterModelBuilder, 
@@ -11,7 +11,7 @@ from backend.utils.flat_utils import (
     create_server_started_message,
     create_server_stopped_message
 )
-from backend.utils.base_models import FlowData, FilterModel, RuleModel, Operator, RuleAction
+from backend.models.base_models import FlowData, FilterModel, RuleModel, Operator, RuleAction
 
 
 class TestMessageFactory:

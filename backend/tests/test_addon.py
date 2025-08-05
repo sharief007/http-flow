@@ -6,7 +6,7 @@ import threading
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from mitmproxy import http
 from backend.services.addon import HTTPInterceptorAddon
-from backend.utils.base_models import FlowData, FilterModel, RuleModel, Operator, RuleAction
+from backend.models.base_models import FlowData, FilterModel, RuleModel, Operator, RuleAction
 
 
 @pytest.fixture
